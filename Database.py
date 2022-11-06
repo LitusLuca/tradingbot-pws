@@ -31,7 +31,7 @@ TABLES['Apple'] = (
     ") ENGINE=InnoDB")
 
 try:
-  cnx = mysql.connector.connect(user='Bator',password='Amber!0219')
+  cnx = mysql.connector.connect(user='Bator',password='')
   cursor = cnx.cursor()
 except mysql.connector.Error as err:
   if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
