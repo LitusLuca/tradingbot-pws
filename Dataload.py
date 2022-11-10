@@ -16,10 +16,12 @@ except mysql.connector.Error as err:
   else:
     print(err)
 
-if file == 'AEXdata.txt':
-    add_date =("INSERT INTO `aex` (Date, Open, High, Low, Close, Volume) VALUES (%s, %s, %s, %s, %s, %s)")
-elif file == 'Appleindex.csv':
-    add_date =("INSERT INTO `apple` (Date, Open, High, Low, Close, Volume) VALUES (%s, %s, %s, %s, %s, %s)")
+table_name= file.replace('.','\\')
+table_name= table_name.split('\\')
+table_name= table_name[1]
+
+
+add_date =("INSERT INTO `{}` (Date, Open, High, Low, Close, Volume) VALUES (%s, %s, %s, %s, %s, %s)".format(table_name))
 
 
 data = open(file).read()
