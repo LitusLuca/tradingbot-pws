@@ -1,5 +1,7 @@
 import numpy as np
 import math
+import datetime
+import mysql.connector
 
 class StockSimulation:
     def __init__(self) -> None:
@@ -32,3 +34,23 @@ class StockSimulation:
         return next_state, reward, done
 
 
+
+cnx = mysql.connector.connect(user='Bator',password='' database='indexes')
+cursor = cnx.cursor()
+
+table = input('Table to insert into environment: ')
+
+query = ("SELECT Date, Open, High, Low, Close, Volume FROM `{}`"
+         "WHERE Date BETWEEN %s AND %s".format(table))
+
+first_date = datetime.date.min
+last_date = datetime.date.max
+
+cursor.execute(query, (first_date, last_date))
+
+for (Date, Open, High, Low, Close, Volume) in cursor:
+    print("On {:%d %b %Y} the data was: {}, {}, {}, {}, {}".format(
+    Date, Open, High, Low, Close, Volume))
+
+cursor.close()
+cnx.close()
