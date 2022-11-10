@@ -30,6 +30,28 @@ TABLES['Apple'] = (
     "  PRIMARY KEY (`Date`)"
     ") ENGINE=InnoDB")
 
+TABLES['Meta'] = (
+    "CREATE TABLE `meta` (" 
+    "  `Date` date NOT NULL,"
+    "  `Open` decimal(11,6) NOT NULL,"
+    "  `High` decimal(11,6) NOT NULL,"
+    "  `Low` decimal(11,6) NOT NULL,"
+    "  `Close` decimal(11,6) NOT NULL,"
+    "  `Volume` int(11) NOT NULL,"
+    "  PRIMARY KEY (`Date`)"
+    ") ENGINE=InnoDB")
+
+TABLES['Microsoft'] = (
+    "CREATE TABLE `microsoft` (" 
+    "  `Date` date NOT NULL,"
+    "  `Open` decimal(11,6) NOT NULL,"
+    "  `High` decimal(11,6) NOT NULL,"
+    "  `Low` decimal(11,6) NOT NULL,"
+    "  `Close` decimal(11,6) NOT NULL,"
+    "  `Volume` int(11) NOT NULL,"
+    "  PRIMARY KEY (`Date`)"
+    ") ENGINE=InnoDB")
+
 try:
   cnx = mysql.connector.connect(user='Bator',password='')
   cursor = cnx.cursor()
@@ -58,8 +80,6 @@ except mysql.connector.Error as err:
     else:
         print(err)
         exit(1)
-
-cursor.execute("DROP TABLE `apple`")
 
 for table_name in TABLES:
     table_description = TABLES[table_name]
