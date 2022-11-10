@@ -35,7 +35,7 @@ class StockSimulation:
 
 
 
-cnx = mysql.connector.connect(user='Bator',password='' database='indexes')
+cnx = mysql.connector.connect(user='Bator',password='', database='indexes')
 cursor = cnx.cursor()
 
 table = input('Table to insert into environment: ')
