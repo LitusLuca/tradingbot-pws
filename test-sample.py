@@ -46,8 +46,8 @@ class DQNAgent:
             target = reward
             if not done:
                 target = (reward + self.gamma *
-                          np.amax(self.model.predict(next_state)[0]))
-            target_f = self.model.predict(state)
+                          np.amax(self.model.predict(next_state, verbose=0)[0]))
+            target_f = self.model.predict(state, verbose=0)
             target_f[0][action] = target
             self.model.fit(state, target_f, epochs=1, verbose=0)
         if self.epsilon > self.epsilon_min:

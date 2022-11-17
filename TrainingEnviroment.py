@@ -1,15 +1,21 @@
-import numpy as np
-import math
 import datetime
+import math
+
 import mysql.connector
+import numpy as np
+
+from _env import password
+
 
 class StockSimulation:
     def __init__(self) -> None:
         self.time = 0
-        self.windowSize = 20
+        self.windowSize = 30
         self.inventory = []
         self.profit = 0.0
         self.stock = "TODO" #TODO
+        self.actionSpace = 3
+        self.inputSpace = 40
         pass
     def getTime(self) -> int:
         return self.time
@@ -22,8 +28,6 @@ class StockSimulation:
     def getState(self):
         data = self._getData(self, self.stock, self.time - self.windowSize, self.time)
         state = []
-        for i_data in range(data):
-            state.append(self._sigmoid(i_data))
         return np.array(data)
 
     def action(self, action: int):
@@ -35,7 +39,7 @@ class StockSimulation:
 
 
 
-cnx = mysql.connector.connect(user='Bator',password='', database='indexes')
+cnx = mysql.connector.connect(user='PWS',password=password, database='indexes')
 cursor = cnx.cursor()
 
 table = input('Table to insert into environment: ')
