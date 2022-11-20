@@ -1,8 +1,12 @@
 from __future__ import print_function
+
+from datetime import date
+
 import mysql.connector
 from mysql.connector import errorcode
-from datetime import date
+
 from _env import password
+
 file = input('data file: ')
 
 try:

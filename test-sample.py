@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 import random
+from collections import deque
+
 import gym
 import numpy as np
-from collections import deque
-from keras.models import Sequential
 from keras.layers import Dense
+from keras.models import Sequential
 from keras.optimizers import Adam
 
 EPISODES = 1000
