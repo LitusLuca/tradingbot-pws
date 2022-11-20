@@ -2,6 +2,7 @@ from __future__ import print_function
 import mysql.connector
 from mysql.connector import errorcode
 from datetime import date
+from _env import password
 
 DB_NAME = 'indexes'
 
@@ -21,6 +22,7 @@ TABLES['Indexes'] = (
     "  `market_id` smallint(3) NOT NULL,"
     "  PRIMARY KEY (`id`)"
     ") ENGINE=InnoDB")
+
 
 TABLES['AEX'] = (
     "CREATE TABLE `aex` (" 
@@ -67,7 +69,7 @@ TABLES['Microsoft'] = (
     ") ENGINE=InnoDB")
 
 try:
-  cnx = mysql.connector.connect(user='Bator',password='')
+  cnx = mysql.connector.connect(user='Bator',password=password)
   cursor = cnx.cursor()
 except mysql.connector.Error as err:
   if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
@@ -107,8 +109,7 @@ for table_name in TABLES:
             print(err.msg)
     else:
         print("OK")
-    
-    
+
 yesorno = input('add market and index info? ')
 markets = {}
 indexes = {}
@@ -138,8 +139,9 @@ if yesorno == 'yes':
             print('indexes already added')
             break
     print('done')
-    
+
+
+
 cnx.commit()
 cursor.close()
 cnx.close()
-
