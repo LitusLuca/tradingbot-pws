@@ -5,11 +5,28 @@ from datetime import date
 import mysql.connector
 from mysql.connector import errorcode
 
-from _env import password
+from datetime import date
+
+from _env import password,user
 
 DB_NAME = 'indexes'
 
 TABLES = {}
+
+TABLES['Markets'] = (
+    "CREATE TABLE `markets` ("
+    "  `id` smallint(3) NOT NULL AUTO_INCREMENT,"
+    "  `market_name` varchar(10) NOT NULL UNIQUE KEY,"
+    "  PRIMARY KEY (`id`)"
+    ") ENGINE=InnoDB")
+
+TABLES['Indexes'] = (
+    "CREATE TABLE `indexes` (" 
+    "  `id` smallint(3) NOT NULL AUTO_INCREMENT,"
+    "  `index_name` varchar(10) NOT NULL UNIQUE KEY,"
+    "  `market_id` smallint(3) NOT NULL,"
+    "  PRIMARY KEY (`id`)"
+    ") ENGINE=InnoDB")
 
 
 TABLES['AEX'] = (
@@ -57,7 +74,9 @@ TABLES['Microsoft'] = (
     ") ENGINE=InnoDB")
 
 try:
-  cnx = mysql.connector.connect(user='PWS',password=password)
+
+  cnx = mysql.connector.connect(user=user,password=password)
+ 
   cursor = cnx.cursor()
 except mysql.connector.Error as err:
   if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
@@ -97,8 +116,39 @@ for table_name in TABLES:
             print(err.msg)
     else:
         print("OK")
+
+yesorno = input('add market and index info? ')
+markets = {}
+indexes = {}
+
+markets['aex'] = ("INSERT INTO `markets` (market_name) VALUES ('aex')")
+markets['nasdaq'] = ("INSERT INTO `markets` (market_name) VALUES ('nasdaq')")
+
+indexes['aex'] = ("INSERT INTO `indexes` (index_name, market_id) VALUES ('aex','1')")
+indexes['apple'] = ("INSERT INTO `indexes` (index_name, market_id) VALUES ('apple','2')")
+indexes['meta'] = ("INSERT INTO `indexes` (index_name, market_id) VALUES ('meta','2')")
+indexes['microsoft'] = ("INSERT INTO `indexes` (index_name, market_id) VALUES ('microsoft','2')")
+
+if yesorno == 'yes':
+    for market in markets:
+        market_description = markets[market]
+        try:
+            cursor.execute(market_description)
+        except:
+            print('markets already added')
+            break
     
+    for index in indexes:
+        index_description = indexes[index]
+        try:
+            cursor.execute(index_description)
+        except:
+            print('indexes already added')
+            break
+    print('done')
+
+
+
 cnx.commit()
 cursor.close()
 cnx.close()
-
