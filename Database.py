@@ -1,8 +1,13 @@
 from __future__ import print_function
+
+from datetime import date
+
 import mysql.connector
 from mysql.connector import errorcode
+
 from datetime import date
-from _env import password
+
+from _env import password,user
 
 DB_NAME = 'indexes'
 
@@ -69,7 +74,9 @@ TABLES['Microsoft'] = (
     ") ENGINE=InnoDB")
 
 try:
-  cnx = mysql.connector.connect(user='Bator',password=password)
+
+  cnx = mysql.connector.connect(user=user,password=password)
+ 
   cursor = cnx.cursor()
 except mysql.connector.Error as err:
   if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
