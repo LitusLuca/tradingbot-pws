@@ -52,7 +52,7 @@ class StockSimulation:
         cursor.execute(indexquery)
         print("These indexes are in the same market:")
         for index in cursor:
-            print(index)
+            print(index[0])
 
         cursor.close()
         cnx.close()
