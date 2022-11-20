@@ -4,7 +4,7 @@ import math
 import mysql.connector
 import numpy as np
 
-from _env import password
+from _env import password, user
 
 
 class StockSimulation:
@@ -60,7 +60,7 @@ class StockSimulation:
 
 
 if __name__ == "__main__":
-    cnx = mysql.connector.connect(user='PWS',password=password, database='indexes')
+    cnx = mysql.connector.connect(user=user,password=password, database='indexes')
     cursor = cnx.cursor()
 
     table = input('Table to insert into environment: ')
