@@ -22,4 +22,4 @@ def SimpleTraning(instrument ,episodes, episodeLength, epidsodeStartDate):
 
 
 if __name__ == "__main__":
-    SimpleTraning("AEX", 10, 10, 1)
+    SimpleTraning("microsoft", 10, 10, 1)

@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timedelta
 import math
 
 import mysql.connector
@@ -21,8 +21,44 @@ class StockSimulation:
         #maybe sort traningdata
 
 
-    def _getData(self, instrument, startDate, lenght):
-        pass
+    def _getData(self, instrument, startDate, length):
+        cnx = mysql.connector.connect(user=user,password=password, database='indexes')
+        cursor = cnx.cursor()
+
+        table = instrument
+
+        dataquery = ("SELECT Date, Close FROM `{}`"
+            "WHERE Date BETWEEN %s AND %s".format(table))
+
+        first_date = datetime.strptime(startDate)
+        last_date = first_date + timedelta(days=length)
+
+        cursor.execute(dataquery, (first_date, last_date))
+
+        alldata = []
+
+        for (Date, Close) in cursor:
+            print("On {:%d %b %Y} the data was: {}".format(
+            Date, Close))
+            alldata.append((Date,Close))
+        
+        marketquery = ("SELECT market_id FROM Indexes WHERE index_name = '{}'".format(table))
+        cursor.execute(marketquery)
+        for id in cursor:
+            market_id = id[0]
+        print(market_id)
+        cursor.close
+        indexquery = ("SELECT index_name FROM Indexes where market_id = {}".format(market_id))
+        cursor.execute(indexquery)
+        print("These indexes are in the same market:")
+        for index in cursor:
+            print(index)
+
+        cursor.close()
+        cnx.close()
+        return alldata
+
+    
 
     def reset(self):
         #TODO store results
@@ -57,25 +93,3 @@ class StockSimulation:
         done = False
         self.time += 1
         return next_state, reward, done
-
-
-if __name__ == "__main__":
-    cnx = mysql.connector.connect(user=user,password=password, database='indexes')
-    cursor = cnx.cursor()
-
-    table = input('Table to insert into environment: ')
-
-    query = ("SELECT Date, Open, High, Low, Close, Volume FROM `{}`"
-            "WHERE Date BETWEEN %s AND %s".format(table))
-
-    first_date = datetime.date.min
-    last_date = datetime.date.max
-
-    cursor.execute(query, (first_date, last_date))
-
-    for (Date, Open, High, Low, Close, Volume) in cursor:
-        print("On {:%d %b %Y} the data was: {}, {}, {}, {}, {}".format(
-        Date, Open, High, Low, Close, Volume))
-
-    cursor.close()
-    cnx.close()
