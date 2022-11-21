@@ -1,13 +1,13 @@
 import mysql.connector
 from mysql.connector import errorcode
-from _env import password
+from _env import password,user
 
 DB_NAME = 'indexes'
 
 what = str(input("drop what table? "))
 
 try:
-  cnx = mysql.connector.connect(user='Bator',password=password,database='indexes')
+  cnx = mysql.connector.connect(user=user,password=password,database='indexes')
   cursor = cnx.cursor()
 except mysql.connector.Error as err:
   if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:

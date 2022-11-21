@@ -9,11 +9,11 @@ from keras.optimizers import Adam
 
 
 class TradingAgent:
-    def __init__(self, state_size, action_size, epsilon = 1.0, epsilonDeqay = 0.99, epsilonMinimum = 0.05, safeFile = ""):
+    def __init__(self, state_size, action_size, gamma = 0.99, epsilon = 1.0, epsilonDeqay = 0.9999, epsilonMinimum = 0.05, safeFile = ""):
         self.state_size = state_size
         self.action_size = action_size
         self.memory = deque(maxlen=2000)
-        self.gamma = 0.9
+        self.gamma = gamma
         self.exploration = epsilon
         self.exploration_decay = epsilonDeqay
         self.exploration_min = epsilonMinimum
@@ -29,10 +29,10 @@ class TradingAgent:
             self.exploration *= self.exploration_decay
 
     def predictAction(self, state):
+        self._epsilonDeqay()
         if random.random() < self.exploration:
             return random.randrange(self.action_size)
-        self._epsilonDeqay()
-        q_values = self.model.predict(state)
+        q_values = self.model.predict(state, verbose=0)[0]
         print(q_values)
         return numpy.argmax(q_values)
 
@@ -55,9 +55,15 @@ class TradingAgent:
         for state, action, reward, next, finished in traningBatch:
             targetQ = reward
             if not finished:
-                print(next)
-                qValues = self.model.predict(next)
-                print(qValues)
-                targetQ += self.gamma * numpy.amax(self.model.predict(next))
-            fullTargetQ = self.model.predict(state)
-            fullTargetQ[action] = targetQ
+                qValues = self.model.predict(next, verbose=0)
+                targetQ += self.gamma * numpy.amax(qValues[0])
+            fullTargetQ = self.model.predict(state, verbose=0)
+            fullTargetQ[0][action] = targetQ
+            self.model.fit(state, fullTargetQ, epochs=1, verbose=0)
+
+    def load(self):
+        self.model.load_weights(self.safefile)
+    
+    def save(self):
+        self.model.save_weights(self.safefile)
+        print(self.exploration)

@@ -1,24 +1,26 @@
-from datetime import datetime, timedelta
 import math
+from datetime import datetime, timedelta
 
 import mysql.connector
+import numpy
 import numpy as np
 
 from _env import password, user
 
 
 class StockSimulation:
-    def __init__(self, instrument, episodeLength, episodeStart) -> None:
+    def __init__(self, instrument, timeSpan, episodeStart) -> None:
         self.time = 0
-        self.windowSize = 30
+        self.windowSize = 32
         self.inventory = []
+        self.invested = 0.0
         self.profit = 0.0
         self.instrument = instrument #TODO
         self.actionSpace = 3
-        self.inputSpace = 40
-        self.traningdata = self._getData(instrument, episodeStart, episodeLength)
-        self.instrumentValue = 0
-        #maybe sort traningdata
+        self.inputSpace = self.windowSize + 2
+        self.trainingdata = self._getData(instrument, episodeStart-timedelta(days=self.windowSize), timeSpan)
+        _, self.instrumentValue = self.trainingdata[self.time]
+        print(self.instrumentValue)
 
 
     def _getData(self, instrument, startDate, length):
@@ -30,7 +32,7 @@ class StockSimulation:
         dataquery = ("SELECT Date, Close FROM `{}`"
             "WHERE Date BETWEEN %s AND %s".format(table))
 
-        first_date = datetime.strptime(startDate)
+        first_date = startDate
         last_date = first_date + timedelta(days=length)
 
         cursor.execute(dataquery, (first_date, last_date))
@@ -40,7 +42,7 @@ class StockSimulation:
         for (Date, Close) in cursor:
             print("On {:%d %b %Y} the data was: {}".format(
             Date, Close))
-            alldata.append((Date,Close))
+            alldata.append((Date,float(Close)))
         
         marketquery = ("SELECT market_id FROM Indexes WHERE index_name = '{}'".format(table))
         cursor.execute(marketquery)
@@ -58,7 +60,8 @@ class StockSimulation:
         cnx.close()
         return alldata
 
-    
+    def getEpisodeLength(self):
+        return len(self.trainingdata) - self.windowSize
 
     def reset(self):
         #TODO store results
@@ -71,25 +74,25 @@ class StockSimulation:
 
     def getState(self):
         """set instrument value and format/return current state to the agent"""
-        return []
+        _, self.instrumentValue = self.trainingdata[self.time+self.windowSize]
+        data = self.trainingdata[self.time:self.time+self.windowSize]
+        data = list(list(zip(*data))[1])
+        data.extend([self.profit, self.invested])
+        return numpy.reshape(data, [1, self.inputSpace])
 
     def action(self, action):
         reward = 0.0
         if action == 0:
-            print("buying: ", self.instrument)
             self.inventory.append(self.instrumentValue)
-        elif action == 1:
-            print("selling: ", self.instrument)
-            if self.inventory:
+        elif action == 1 and self.inventory:
                 reward = self.instrumentValue - self.inventory[0]
                 self.inventory = self.inventory[1:]
-            else:
-                print("cant sell if you have nothing!!! BOZO-AGENT!!")
-        elif action == 2:
-            print("doing nothing")
 
         self.profit += reward
-        next_state = []
-        done = False
+        print("On t={} the profit is: {:.2f}".format(self.time, self.profit))
         self.time += 1
+        if self.time  == self.getEpisodeLength():
+            return [], reward, True
+        next_state = self.getState()
+        done = False
         return next_state, reward, done
