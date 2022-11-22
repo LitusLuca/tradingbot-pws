@@ -10,7 +10,7 @@ from _env import password
 file = input('data file: ')
 
 try:
-  cnx = mysql.connector.connect(user='PWS',password=password,database='indexes')
+  cnx = mysql.connector.connect(user='user',password=password,database='indexes')
   cursor = cnx.cursor()
 except mysql.connector.Error as err:
   if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
