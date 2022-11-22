@@ -6,6 +6,7 @@ import numpy
 from keras.layers import Dense
 from keras.models import Sequential
 from keras.optimizers import Adam
+from os.path import exists
 
 
 class TradingAgent:
@@ -62,7 +63,8 @@ class TradingAgent:
             self.model.fit(state, fullTargetQ, epochs=1, verbose=0)
 
     def load(self):
-        self.model.load_weights(self.safefile)
+        if exists(self.safefile):
+            self.model.load_weights(self.safefile)
     
     def save(self):
         self.model.save_weights(self.safefile)

@@ -3,13 +3,15 @@ from datetime import datetime, timedelta
 
 import mysql.connector
 import numpy
-import numpy as np
+
 
 from _env import password, user
+from openpyxl import Workbook, load_workbook
+from os.path import exists
 
 
 class StockSimulation:
-    def __init__(self, instrument, timeSpan, episodeStart) -> None:
+    def __init__(self, instrument, timeSpan, episodeStart, results) -> None:
         self.time = 0
         self.windowSize = 32
         self.inventory = []
@@ -21,6 +23,19 @@ class StockSimulation:
         self.trainingdata = self._getData(instrument, episodeStart-timedelta(days=self.windowSize), timeSpan)
         _, self.instrumentValue = self.trainingdata[self.time]
         print(self.instrumentValue)
+
+        if exists(results):
+            self.wb = load_workbook(results)
+        else:
+            self.wb = Workbook()
+        self.ws = self.wb.active
+        self.specialparameter = 0.0
+        self.specialparameterIterator = 0
+        self.episode = 1
+        self.ws["A1"] = "episode \\ parameter"
+        self.ws["B1"] = self.specialparameter
+        self.wb.save(results)
+        self.resultsfile = results
 
 
     def _getData(self, instrument, startDate, length):
@@ -63,14 +78,23 @@ class StockSimulation:
     def getEpisodeLength(self):
         return len(self.trainingdata) - self.windowSize
 
-    def reset(self):
+    def reset(self, specialParameter = 0.0, hardReset = False):
         #TODO store results
+        
+        self.ws.cell(row=self.episode + 1, column= self.specialparameterIterator + 2, value= self.profit)
+        self.ws.cell(row=self.episode + 1, column=1, value=self.episode)
+        if hardReset:
+            self.specialparameterIterator += 1
+            self.specialparameter = specialParameter
+            self.episode = 1
+            self.ws.cell(row=1, column= self.specialparameterIterator + 2, value=specialParameter)
+        
+        self.wb.save(self.resultsfile)
+        self.episode += 1
         self.time = 0
-        self.profit = 0
+        self.profit = 0.0
+        self.invested = 0.0
         self.inventory.clear()
-
-
-        pass
 
     def getState(self):
         """set instrument value and format/return current state to the agent"""
@@ -84,9 +108,12 @@ class StockSimulation:
         reward = 0.0
         if action == 0:
             self.inventory.append(self.instrumentValue)
+            self.invested += self.instrumentValue
         elif action == 1 and self.inventory:
-                reward = self.instrumentValue - self.inventory[0]
-                self.inventory = self.inventory[1:]
+            self.invested -= self.inventory[0]
+            reward = self.instrumentValue - self.inventory[0]
+            self.inventory = self.inventory[1:]
+
 
         self.profit += reward
         print("On t={} the profit is: {:.2f}".format(self.time, self.profit))
