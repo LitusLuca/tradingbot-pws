@@ -11,7 +11,7 @@ from os.path import exists
 
 
 class StockSimulation:
-    def __init__(self, instrument, timeSpan, episodeStart, results) -> None:
+    def __init__(self, instrument, timeSpan, episodeStart, results):
         self.time = 0
         self.windowSize = 7
         self.inventory = []
@@ -24,6 +24,7 @@ class StockSimulation:
         _, self.instrumentValue = self.trainingdata[self.time]
         print(self.instrumentValue)
 
+    #values for storing results
         if exists(results):
             self.wb = load_workbook(results)
         else:
@@ -103,7 +104,8 @@ class StockSimulation:
         _, self.instrumentValue = self.trainingdata[self.time+self.windowSize]
         data = self.trainingdata[self.time:self.time+self.windowSize]
         data = numpy.swapaxes(data, 0, 1)[1]
-        data = numpy.append(data, [self.profit, self.invested, float(len(self.inventory))]).astype('float32')
+        profitsell = self.instrumentValue-self.inventory[0] if len(self.inventory) else 0
+        data = numpy.append(data, [profitsell, self.invested, float(len(self.inventory))]).astype('float32')
         return data
 
     def action(self, action):
@@ -121,7 +123,7 @@ class StockSimulation:
         print("On t={} the profit is: {:.2f}".format(self.time, self.profit))
         self.time += 1
         done = False
-        if self.time  == self.getEpisodeLength():
+        if self.time  == self.getEpisodeLength() - 1:
             done = True
         next_state = self.getState()
         
