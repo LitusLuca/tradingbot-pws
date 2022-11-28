@@ -44,7 +44,7 @@ class StockSimulation:
 
         table = instrument
 
-        dataquery = ("SELECT Date, Close FROM `{}`"
+        dataquery = ("SELECT Date, Open, High, Low, Close, Volume FROM `{}`"
             "WHERE Date BETWEEN %s AND %s".format(table))
 
         first_date = startDate
@@ -54,9 +54,9 @@ class StockSimulation:
 
         alldata = numpy.empty((0,2))
 
-        for (Date, Close) in cursor:
+        for (Date, Open, High, Low, Close, Volume) in cursor:
             #print("On {:%d %b %Y} the data was: {}".format(Date, Close))
-            alldata = numpy.append(alldata, [Date,float(Close)])
+            alldata = numpy.append(alldata, [Date,float(Open),float(High),float(Low),float(Close),int(Volume)])
         
         marketquery = ("SELECT market_id FROM Indexes WHERE index_name = '{}'".format(table))
         cursor.execute(marketquery)
