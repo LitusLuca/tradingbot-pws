@@ -19,9 +19,9 @@ class StockSimulation:
         self.profit = 0.0
         self.instrument = instrument #TODO
         self.actionSpace = 3
-        self.inputSpace = self.windowSize + 3 #+3: invested profit and inventorie lenght
+        self.inputSpace = self.windowSize * 5 + 3 #+3: invested profit and inventorie lenght
         self.trainingdata = self._getData(instrument, episodeStart-timedelta(days=self.windowSize), timeSpan)
-        _, self.instrumentValue = self.trainingdata[self.time]
+        _,_,_,_,_, self.instrumentValue = self.trainingdata[self.time]
         print(self.instrumentValue)
 
     #values for storing results
@@ -45,7 +45,7 @@ class StockSimulation:
 
         table = instrument
 
-        dataquery = ("SELECT Date, Close FROM `{}`"
+        dataquery = ("SELECT Date, Open, High, Low, Close, Volume FROM `{}`"
             "WHERE Date BETWEEN %s AND %s".format(table))
 
         first_date = startDate
@@ -55,9 +55,9 @@ class StockSimulation:
 
         alldata = numpy.empty((0,2))
 
-        for (Date, Close) in cursor:
+        for (Date, Open, High, Low, Close, Volume) in cursor:
             #print("On {:%d %b %Y} the data was: {}".format(Date, Close))
-            alldata = numpy.append(alldata, [Date,float(Close)])
+            alldata = numpy.append(alldata, [Date,float(Open),float(High),float(Low),int(Volume),float(Close)])
         
         marketquery = ("SELECT market_id FROM Indexes WHERE index_name = '{}'".format(table))
         cursor.execute(marketquery)
@@ -74,7 +74,7 @@ class StockSimulation:
         cursor.close()
         cnx.close()
         print(alldata, numpy.shape(alldata))
-        alldata = numpy.reshape(alldata, [int(len(alldata)/2), 2])
+        alldata = numpy.reshape(alldata, [int(len(alldata)/6), 6])
         print(alldata, numpy.shape(alldata))
         return alldata
 
@@ -101,11 +101,13 @@ class StockSimulation:
 
     def getState(self):
         """set instrument value and format/return current state to the agent"""
-        _, self.instrumentValue = self.trainingdata[self.time+self.windowSize]
+        _,_,_,_,_, self.instrumentValue = self.trainingdata[self.time+self.windowSize]
         data = self.trainingdata[self.time:self.time+self.windowSize]
-        data = numpy.swapaxes(data, 0, 1)[1]
+        data = numpy.swapaxes(data, 0, 1)[1:]
+        data = numpy.concatenate(data)
         profitsell = self.instrumentValue-self.inventory[0] if len(self.inventory) else 0
         data = numpy.append(data, [profitsell, self.invested, float(len(self.inventory))]).astype('float32')
+
         return data
 
     def action(self, action):
