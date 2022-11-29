@@ -10,22 +10,23 @@ from os.path import exists
 
 
 class TradingAgent:
-    def __init__(self, state_size, action_size, gamma = 0.99, epsilon = 1.0, epsilonDeqay = 0.9999, epsilonMinimum = 0.05, safeFile = ""):
+    def __init__(self, state_size, action_size, gamma = 0.99, epsilon = 1.0,
+     epsilonDecay = 0.99, epsilonMinimum = 0.05, learningrate = 0.001, safeFile = ""):
         self.state_size = state_size
         self.action_size = action_size
         self.memory = deque(maxlen=2000)
         self.gamma = gamma
         self.exploration = epsilon
-        self.exploration_decay = epsilonDeqay
+        self.exploration_decay = epsilonDecay
         self.exploration_min = epsilonMinimum
-        self.learningrate = 0.001
+        self.learningrate = learningrate
         self.model = self._createModel()
         self.safefile = safeFile
 
         print("Hello, agent!")
 
 
-    def epsilonDeqay(self):
+    def epsilonDecay(self):
         if self.exploration > self.exploration_min:
             self.exploration *= self.exploration_decay
 
@@ -48,45 +49,21 @@ class TradingAgent:
     def remember(self, memory):
         self.memory.append(memory)
     
-    def trainMemories(self, traningSize):
-        if len(self.memory) < traningSize:
+    def trainMemories(self, trainingSize):
+        if len(self.memory) < trainingSize:
             return
-        traningBatch = numpy.array(random.sample(self.memory, traningSize))
-        traningBatch = numpy.swapaxes(traningBatch,0,1)
-        x_train = numpy.array(list(traningBatch[0]), dtype=numpy.float32)
+        trainingBatch = numpy.array(random.sample(self.memory, trainingSize))
+        trainingBatch = numpy.swapaxes(trainingBatch,0,1)
+        x_train = numpy.array(list(trainingBatch[0]), dtype=numpy.float32)
         y_train = self.model.predict(x_train, verbose=0)
-        rewards = traningBatch[2]
-        nextQ = numpy.amax(self.model.predict(numpy.array(list(traningBatch[3]), dtype=numpy.float32), verbose=0), axis=1)
-        targetQ = rewards + nextQ*(-1*(traningBatch[4]))
+        rewards = trainingBatch[2]
+        nextQ = numpy.amax(self.model.predict(numpy.array(list(trainingBatch[3]), dtype=numpy.float32), verbose=0), axis=1)
+        targetQ = rewards + self.gamma*nextQ*(-1*(trainingBatch[4])+1)
 
         for i in range(len(y_train)):
-            y_train[i][traningBatch[1][i]] = targetQ[i]
+            y_train[i][trainingBatch[1][i]] = targetQ[i]
         
-
-
-        # x_train = [state for state, _,_,_,_ in traningBatch]
-        # y_train = [reward ]
-        # for state, action, reward, next, finished in traningBatch:
-        #     targetQ = reward
-        #     if not finished:
-        #         qValues = self.model.predict(next, verbose=0)
-        #         targetQ += self.gamma * numpy.amax(qValues[0])
-        #     fullTargetQ = self.model.predict(state, verbose=0)
-        #     fullTargetQ[0][action] = targetQ
-        #     x_train.append(state[0])
-        #     y_train.append(fullTargetQ[0])
-        #     print(x_train.shape, y_train.shape)
         self.model.fit(x_train, y_train, batch_size=10, epochs=1, verbose=0)
-        
-
-        #for state, action, reward, next, finished in traningBatch:
-        #    targetQ = reward
-        #    if not finished:
-        #        qValues = self.model.predict(next, verbose=0)
-        #        targetQ += self.gamma * numpy.amax(qValues[0])
-        #    fullTargetQ = self.model.predict(state, verbose=0)
-        #    fullTargetQ[0][action] = targetQ
-        #    self.model.fit(state, fullTargetQ, epochs=1, verbose=0)
 
     def load(self):
         if exists(self.safefile):
