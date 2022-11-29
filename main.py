@@ -8,7 +8,7 @@ from TrainingEnviroment import StockSimulation
 
 def SimpleTraining(instrument ,episodes, timeSpan, epidsodeStartDate, iteration):
     environment = StockSimulation(instrument, timeSpan, epidsodeStartDate, results="./results/simple-{}-{}.xlsx".format(instrument, iteration))
-    agent = TradingAgent(environment.inputSpace, environment.actionSpace, safeFile="./models/simple-{}-{}.h5".format(instrument, iteration), epsilonDeqay=0.9)
+    agent = TradingAgent(environment.inputSpace, environment.actionSpace, safeFile="./models/simple-{}-{}.h5".format(instrument, iteration), epsilonDeqay=0.95)
     agent.load()
 
     for E in range(episodes):
@@ -43,6 +43,8 @@ def ChangingTraining(instrument, episodes, episodeTimeSpan, minDate, maxDate, it
         print("--------------------\n")
 
         agent.epsilonDecay()
+        environment.epsilon = agent.exploration
+
         state = environment.getState()
         for t in range(environment.getEpisodeLength()):
             action = agent.predictAction(state)
@@ -60,6 +62,7 @@ def ChangingTraining(instrument, episodes, episodeTimeSpan, minDate, maxDate, it
         episodeStartDate = randomDate(minDate, maxDate)
         print(episodeStartDate)
         environment.trainingdata = environment._getData(instrument, episodeStartDate-timedelta(days=environment.windowSize), episodeTimeSpan)
+        environment.startDate = episodeStartDate
 
 if __name__ == "__main__":
     ChangingTraining("meta", 200, 365, date(2013, 1, 1), date(2021, 11, 1), 2.0)

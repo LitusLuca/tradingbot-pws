@@ -37,6 +37,8 @@ class StockSimulation:
         self.ws["B1"] = self.specialparameter
         self.wb.save(results)
         self.resultsfile = results
+        self.epsilon = 0
+        self.startDate = episodeStart
 
 
     def _getData(self, instrument, startDate, length):
@@ -86,6 +88,8 @@ class StockSimulation:
         
         self.ws.cell(row=self.episode + 1, column= self.specialparameterIterator + 2, value= self.profit)
         self.ws.cell(row=self.episode + 1, column=1, value=self.episode)
+        self.ws.cell(row=self.episode + 1, column=3, value=self.epsilon)
+        self.ws.cell(row=self.episode + 1, column=4, value=self.startDate)
         if hardReset:
             self.specialparameterIterator += 1
             self.specialparameter = specialParameter
