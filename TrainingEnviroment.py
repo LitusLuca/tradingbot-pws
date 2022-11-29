@@ -19,9 +19,9 @@ class StockSimulation:
         self.profit = 0.0
         self.instrument = instrument #TODO
         self.actionSpace = 3
-        self.inputSpace = self.windowSize + 3 #+3: invested profit and inventorie lenght
+        self.inputSpace = self.windowSize * 5 + 3 #+3: invested profit and inventorie lenght
         self.trainingdata = self._getData(instrument, episodeStart-timedelta(days=self.windowSize), timeSpan)
-        _, self.instrumentValue = self.trainingdata[self.time]
+        _,_,_,_,_, self.instrumentValue = self.trainingdata[self.time]
         print(self.instrumentValue)
 
         if exists(results):
@@ -73,7 +73,7 @@ class StockSimulation:
         cursor.close()
         cnx.close()
         print(alldata, numpy.shape(alldata))
-        alldata = numpy.reshape(alldata, [int(len(alldata)/2), 2])
+        alldata = numpy.reshape(alldata, [int(len(alldata)/6), 6])
         print(alldata, numpy.shape(alldata))
         return alldata
 
@@ -100,9 +100,10 @@ class StockSimulation:
 
     def getState(self):
         """set instrument value and format/return current state to the agent"""
-        _, self.instrumentValue = self.trainingdata[self.time+self.windowSize]
+        _,_,_,_,_, self.instrumentValue = self.trainingdata[self.time+self.windowSize]
         data = self.trainingdata[self.time:self.time+self.windowSize]
-        data = numpy.swapaxes(data, 0, 1)[1]
+        data = numpy.swapaxes(data, 0, 1)[1:]
+        data = numpy.concatenate(data)
         data = numpy.append(data, [self.profit, self.invested, float(len(self.inventory))]).astype('float32')
         return data
 

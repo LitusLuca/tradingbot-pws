@@ -33,4 +33,4 @@ def SimpleTraining(instrument ,episodes, timeSpan, epidsodeStartDate, iteration)
 
 
 if __name__ == "__main__":
-    SimpleTraining("microsoft", 100, 400, date(2017, 1, 1), 1)
+    SimpleTraining("microsoft", 100, 400, date(2017, 1, 1), 9.0)
