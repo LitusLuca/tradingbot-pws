@@ -65,5 +65,5 @@ def ChangingTraining(instrument, episodes, episodeTimeSpan, minDate, maxDate, it
         environment.startDate = episodeStartDate
 
 if __name__ == "__main__":
-    ChangingTraining("meta", 1000, 365, date(2013, 1, 1), date(2021, 11, 1), 3.1)
+    ChangingTraining("meta", 1000, 365, date(2013, 1, 1), date(2021, 11, 1), 4.1)
     #SimpleTraining("microsoft", 100, 400, date(2018, 1, 1), 5)
