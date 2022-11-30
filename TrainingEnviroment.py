@@ -13,13 +13,15 @@ from os.path import exists
 class StockSimulation:
     def __init__(self, instrument, timeSpan, episodeStart, results):
         self.time = 0
-        self.windowSize = 7
+        self.windowSize = 10
         self.inventory = []
         self.invested = 0.0
         self.profit = 0.0
         self.instrument = instrument #TODO
         self.actionSpace = 3
-        self.inputSpace = self.windowSize * 5 + 3 #+3: invested profit and inventorie lenght
+        self.features = 6
+        #self.inputSpace = self.windowSize * 5 + 3 #+3: invested profit and inventorie lenght
+        self.inputSpace = [self.windowSize, self.features]
         self.trainingdata = self._getData(instrument, episodeStart-timedelta(days=self.windowSize), timeSpan)
         _,_,_,_,_, self.instrumentValue = self.trainingdata[self.time]
         print(self.instrumentValue)
@@ -108,9 +110,11 @@ class StockSimulation:
         _,_,_,_,_, self.instrumentValue = self.trainingdata[self.time+self.windowSize]
         data = self.trainingdata[self.time:self.time+self.windowSize]
         data = numpy.swapaxes(data, 0, 1)[1:]
-        data = numpy.concatenate(data)
-        profitsell = self.instrumentValue-self.inventory[0] if len(self.inventory) else 0
-        data = numpy.append(data, [profitsell, self.invested, float(len(self.inventory))]).astype('float32')
+        data = numpy.array(list(data), dtype="float32")
+        #data = numpy.concatenate(data)
+        sellprofit = data[4]-self.inventory[0] if len(self.inventory) else numpy.zeros(self.windowSize, dtype="float32")
+        #data = numpy.append(data, [profitsell, self.invested, float(len(self.inventory))]).astype('float32')
+        data = numpy.vstack([data, sellprofit])
 
         return data
 
