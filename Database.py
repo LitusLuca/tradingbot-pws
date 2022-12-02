@@ -73,6 +73,17 @@ TABLES['Microsoft'] = (
     "  PRIMARY KEY (`Date`)"
     ") ENGINE=InnoDB")
 
+TABLES['Tesla'] = (
+    "CREATE TABLE `tesla` (" 
+    "  `Date` date NOT NULL,"
+    "  `Open` decimal(11,6) NOT NULL,"
+    "  `High` decimal(11,6) NOT NULL,"
+    "  `Low` decimal(11,6) NOT NULL,"
+    "  `Close` decimal(11,6) NOT NULL,"
+    "  `Volume` int(11) NOT NULL,"
+    "  PRIMARY KEY (`Date`)"
+    ") ENGINE=InnoDB")
+
 TABLES['TNX'] = (
     "CREATE TABLE `TNX` (" 
     "  `Date` date NOT NULL,"
@@ -135,7 +146,6 @@ indexes['aex'] = ("INSERT INTO `indexes` (index_name, market_id) VALUES ('aex','
 indexes['apple'] = ("INSERT INTO `indexes` (index_name, market_id) VALUES ('apple','2')")
 indexes['meta'] = ("INSERT INTO `indexes` (index_name, market_id) VALUES ('meta','2')")
 indexes['microsoft'] = ("INSERT INTO `indexes` (index_name, market_id) VALUES ('microsoft','2')")
-indexes['TNX'] = ("INSERT INTO `indexes` (index_name, markert_id) VALUES ('TNX', '2')")
 
 if yesorno == 'yes':
     for market in markets:

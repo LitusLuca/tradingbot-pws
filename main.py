@@ -3,21 +3,21 @@ from datetime import date, timedelta
 import numpy
 
 from Agent import TradingAgent
-from TrainingEnviroment import StockSimulation
+from TrainingEnvironment import StockSimulation
 
 
-def SimpleTraining(instrument ,episodes, timeSpan, epidsodeStartDate, iteration):
-    environment = StockSimulation(instrument, timeSpan, epidsodeStartDate, results="./results/simple-{}-{}.xlsx".format(instrument, iteration))
-    agent = TradingAgent(environment.inputSpace, environment.actionSpace, safeFile="./models/simple-{}-{}.h5".format(instrument, iteration), epsilonDeqay=0.95)
+def SimpleTraining(instrument ,episodes, timeSpan, episodeStartDate, iteration):
+    environnment = StockSimulation(instrument, timeSpan, episodeStartDate, results="./results/simple-{}-{}.xlsx".format(instrument, iteration))
+    agent = TradingAgent(environnment.inputSpace, environnment.actionSpace, safeFile="./models/simple-{}-{}.h5".format(instrument, iteration), epsilonDeqay=0.95)
     agent.load()
 
     for E in range(episodes):
         print("start episode: {:d}/{:d}, exploration: {:.2f}".format(E+1, episodes, agent.exploration))
         
-        state = environment.getState()
+        state = environnment.getState()
         print(state)
         agent.epsilonDecay()
-        for t in range(environment.getEpisodeLength()):
+        for t in range(environnment.getEpisodeLength()):
             action = agent.predictAction(state)
             nextState, reward, finished = environment.action(action)
             agent.remember(numpy.array([state, action, reward, nextState, finished], dtype=object))
