@@ -11,19 +11,22 @@ from os.path import exists
 
 
 class StockSimulation:
-    def __init__(self, instrument, timeSpan, episodeStart, results) -> None:
+    def __init__(self, instrument, timeSpan, episodeStart, results):
         self.time = 0
-        self.windowSize = 32
+        self.windowSize = 10
         self.inventory = []
         self.invested = 0.0
         self.profit = 0.0
         self.instrument = instrument #TODO
         self.actionSpace = 3
-        self.inputSpace = self.windowSize + 2
+        self.features = 3
+        #self.inputSpace = self.windowSize * 5 + 3 #+3: invested profit and inventorie lenght
+        self.inputSpace = [self.windowSize, self.features]
         self.trainingdata = self._getData(instrument, episodeStart-timedelta(days=self.windowSize), timeSpan)
-        _, self.instrumentValue = self.trainingdata[self.time]
+        _, self.instrumentValue, _ = self.trainingdata[self.time]
         print(self.instrumentValue)
 
+    #values for storing results
         if exists(results):
             self.wb = load_workbook(results)
         else:
@@ -36,6 +39,8 @@ class StockSimulation:
         self.ws["B1"] = self.specialparameter
         self.wb.save(results)
         self.resultsfile = results
+        self.epsilon = 0
+        self.startDate = episodeStart
 
 
     def _getData(self, instrument, startDate, length):
@@ -44,20 +49,20 @@ class StockSimulation:
 
         table = instrument
 
-        dataquery = ("SELECT Date, Close FROM `{}`"
-            "WHERE Date BETWEEN %s AND %s".format(table))
+        dataquery = ("SELECT i.Date, i.close, tnx.close FROM `{}` AS i, tnx "
+            "WHERE i.date BETWEEN %s AND %s "
+            "AND tnx.date = i.date").format(table)
 
         first_date = startDate
         last_date = first_date + timedelta(days=length)
 
         cursor.execute(dataquery, (first_date, last_date))
 
-        alldata = []
+        alldata = numpy.empty((0,2))
 
-        for (Date, Close) in cursor:
-            print("On {:%d %b %Y} the data was: {}".format(
-            Date, Close))
-            alldata.append((Date,float(Close)))
+        for (Date, Close, Intrest) in cursor:
+            #print("On {:%d %b %Y} the data was: {}".format(Date, Close))
+            alldata = numpy.append(alldata, [Date,float(Close),float(Intrest)])
         
         marketquery = ("SELECT market_id FROM Indexes WHERE index_name = '{}'".format(table))
         cursor.execute(marketquery)
@@ -73,16 +78,21 @@ class StockSimulation:
 
         cursor.close()
         cnx.close()
+        print(alldata, numpy.shape(alldata))
+        alldata = numpy.reshape(alldata, [int(len(alldata)/3), 3])
+        print(alldata, numpy.shape(alldata))
         return alldata
 
     def getEpisodeLength(self):
-        return len(self.trainingdata) - self.windowSize
+        return len(self.trainingdata) - self.windowSize - 1
 
     def reset(self, specialParameter = 0.0, hardReset = False):
         #TODO store results
         
         self.ws.cell(row=self.episode + 1, column= self.specialparameterIterator + 2, value= self.profit)
         self.ws.cell(row=self.episode + 1, column=1, value=self.episode)
+        self.ws.cell(row=self.episode + 1, column=3, value=self.epsilon)
+        self.ws.cell(row=self.episode + 1, column=4, value=self.startDate)
         if hardReset:
             self.specialparameterIterator += 1
             self.specialparameter = specialParameter
@@ -98,11 +108,16 @@ class StockSimulation:
 
     def getState(self):
         """set instrument value and format/return current state to the agent"""
-        _, self.instrumentValue = self.trainingdata[self.time+self.windowSize]
+        _, self.instrumentValue,_ = self.trainingdata[self.time+self.windowSize]
         data = self.trainingdata[self.time:self.time+self.windowSize]
-        data = list(list(zip(*data))[1])
-        data.extend([self.profit, self.invested])
-        return numpy.reshape(data, [1, self.inputSpace])
+        data = numpy.swapaxes(data, 0, 1)[1:]
+        data = numpy.array(list(data), dtype="float32")
+        #data = numpy.concatenate(data)
+        sellprofit = data[1]-self.inventory[0] if len(self.inventory) else numpy.zeros(self.windowSize, dtype="float32")
+        #data = numpy.append(data, [profitsell, self.invested, float(len(self.inventory))]).astype('float32')
+        data = numpy.vstack([data, sellprofit])
+
+        return data
 
     def action(self, action):
         reward = 0.0
@@ -118,8 +133,9 @@ class StockSimulation:
         self.profit += reward
         print("On t={} the profit is: {:.2f}".format(self.time, self.profit))
         self.time += 1
-        if self.time  == self.getEpisodeLength():
-            return [], reward, True
-        next_state = self.getState()
         done = False
+        if self.time  == self.getEpisodeLength() - 1:
+            done = True
+        next_state = self.getState()
+        
         return next_state, reward, done

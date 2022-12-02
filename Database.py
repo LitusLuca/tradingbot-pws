@@ -84,6 +84,13 @@ TABLES['Tesla'] = (
     "  PRIMARY KEY (`Date`)"
     ") ENGINE=InnoDB")
 
+TABLES['TNX'] = (
+    "CREATE TABLE `TNX` (" 
+    "  `Date` date NOT NULL,"
+    "  `Close` decimal(11,6) NOT NULL,"
+    "  PRIMARY KEY (`Date`)"
+    ") ENGINE=InnoDB")
+
 try:
 
   cnx = mysql.connector.connect(user=user,password=password)
@@ -139,7 +146,6 @@ indexes['aex'] = ("INSERT INTO `indexes` (index_name, market_id) VALUES ('aex','
 indexes['apple'] = ("INSERT INTO `indexes` (index_name, market_id) VALUES ('apple','2')")
 indexes['meta'] = ("INSERT INTO `indexes` (index_name, market_id) VALUES ('meta','2')")
 indexes['microsoft'] = ("INSERT INTO `indexes` (index_name, market_id) VALUES ('microsoft','2')")
-indexes['tesla'] = ("INSERT INTO `indexes` (index_name, market_id) VALUES ('tesla','2')")
 
 if yesorno == 'yes':
     for market in markets:
