@@ -24,7 +24,7 @@ def SimpleTraining(instrument ,episodes, timeSpan, epidsodeStartDate, iteration)
             state = nextState
             if finished:
                 break
-            agent.trainMemories(100)
+            agent.trainMemories(200)
             if t % 50 == 0:
                 agent.save()
         print("total profit: {:.2f}".format(environment.profit))
@@ -36,7 +36,7 @@ def randomDate(start: date, end: date):
 def ChangingTraining(instrument, episodes, episodeTimeSpan, minDate, maxDate, iteration):
     episodeStartDate = randomDate(minDate, maxDate)
     environment = StockSimulation(instrument, episodeTimeSpan, episodeStartDate, results="./results/changing-{}-{}.xlsx".format(instrument, iteration))
-    agent = TradingAgent(environment.inputSpace, environment.actionSpace, safeFile="./models/changing-{}-{}.h5".format(instrument, iteration), epsilonDecay=0.9, gamma=0.9, epsilonMinimum=0.1)
+    agent = TradingAgent(environment.inputSpace, environment.actionSpace, safeFile="./models/changing-{}-{}.h5".format(instrument, iteration), epsilonDecay=0.9, gamma=0.9, epsilonMinimum=0.1, epsilon=0.5)
     agent.load()
     for E in range(episodes):
         print("start episode: {:d}/{:d}, exploration: {:.2f}".format(E+1, episodes, agent.exploration))
@@ -53,7 +53,7 @@ def ChangingTraining(instrument, episodes, episodeTimeSpan, minDate, maxDate, it
             state = nextState
             if finished:
                 break
-            agent.trainMemories(100)
+            agent.trainMemories(200)
             if t % 50 == 0:
                 agent.save()
         print("total profit: {:.2f}".format(environment.profit))
@@ -65,5 +65,5 @@ def ChangingTraining(instrument, episodes, episodeTimeSpan, minDate, maxDate, it
         environment.startDate = episodeStartDate
 
 if __name__ == "__main__":
-    ChangingTraining("meta", 200, 365, date(2013, 1, 1), date(2021, 11, 1), 2.0)
+    ChangingTraining("microsoft", 1000, 365, date(2013, 1, 1), date(2021, 11, 1), 3.0)
     #SimpleTraining("microsoft", 100, 400, date(2018, 1, 1), 5)
