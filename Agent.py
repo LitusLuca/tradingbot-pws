@@ -2,9 +2,8 @@ import random
 from collections import deque
 from statistics import mode
 
-import numpy
-from keras.layers import Dense, Flatten
-from keras.layers.convolutional import Conv1D, MaxPooling1D
+import numpy 
+from keras.layers import Dense, Flatten, Conv1D, MaxPooling1D
 from keras.models import Sequential
 from keras.optimizers import Adam
 from os.path import exists
@@ -12,7 +11,7 @@ from os.path import exists
 
 class TradingAgent:
     def __init__(self, state_size, action_size, gamma = 0.99, epsilon = 1.0,
-     epsilonDecay = 0.99, epsilonMinimum = 0.05, learningrate = 0.001, safeFile = ""):
+                epsilonDecay = 0.99, epsilonMinimum = 0.05, learningrate = 0.001, safeFile = ""):
         self.state_size = state_size
         self.action_size = action_size
         self.memory = deque(maxlen=2000)
@@ -40,14 +39,14 @@ class TradingAgent:
 
     def _createModel(self): 
         model = Sequential()
-        model.add(Conv1D(filters=64, kernel_size=2, activation="relu", input_shape=self.state_size))
+        model.add(Conv1D(filters=64, kernel_size=2, activation="relu", input_shape=(self.state_size[0], self.state_size[1])))
         model.add(MaxPooling1D(pool_size=2))
         model.add(Flatten())
         #model.add(Dense(8, input_dim=self.state_size, activation="relu"))
         model.add(Dense(120, activation="relu"))
         model.add(Dense(60, activation="relu"))
         model.add(Dense(self.action_size, activation="linear"))
-        model.compile(loss="mse", optimizer=Adam(lr=self.learningrate))
+        model.compile(loss="mse", optimizer=Adam(learning_rate=self.learningrate))
         return model
         
     def remember(self, memory):
