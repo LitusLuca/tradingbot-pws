@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 
 import mysql.connector
 import numpy
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 
 from _env import password, user
@@ -19,7 +20,7 @@ class StockSimulation:
         self.profit = 0.0
         self.instrument = instrument #TODO
         self.actionSpace = 3
-        self.features = 6
+        self.features = 4
         #self.inputSpace = self.windowSize * 5 + 3 #+3: invested profit and inventorie lenght
         self.inputSpace = [self.windowSize, self.features]
         self.trainingdata = self._getData(instrument, episodeStart-timedelta(days=self.windowSize), timeSpan)
@@ -108,15 +109,41 @@ class StockSimulation:
 
     def getState(self):
         """set instrument value and format/return current state to the agent"""
-        row = self.trainingdata[self.time + self.windowSize]
+        scaler = StandardScaler()
+        idx = self.time + self.windowSize
+        if idx >= len(self.trainingdata):
+            return None
+            
+        row = self.trainingdata[idx]
+        yester = self.instrumentValue
         self.instrumentValue = float(row[4])
         # Get window of numeric data 
-        data_window = self.trainingdata[self.time:self.time + self.windowSize]
-        numeric_data = numpy.array([[float(r[1]),float(r[2]),float(r[3]),float(r[4]),float(r[5])] for r in data_window], dtype="float32")
+        data_window = self.trainingdata[self.time:idx]
+        
+        #numeric_data = numpy.array([[float(r[1]),float(r[2]),float(r[3]),float(r[4]),float(r[5])] for r in data_window], dtype="float32")
+        #numeric_data = scaler.fit_transform(numeric_data)
 
-        sellprofit = numeric_data[:, 4] - self.inventory[0] if len(self.inventory) else numpy.zeros(self.windowSize, dtype="float32")
-        sellprofit = sellprofit.reshape(-1, 1)
-        data = numpy.hstack([numeric_data, sellprofit])
+        #if len(self.inventory) > 0:
+        #    sellprofit = numeric_data[:, 4] - self.inventory[0]
+        #else:
+        #    sellprofit = numpy.zeros(self.windowSize, dtype="float32")
+        #sellprofit = sellprofit.reshape(-1, 1)    
+        Close = numpy.array([[float(data_window[i][4])] for i in range(self.windowSize)], dtype="float32")
+        Close = scaler.fit_transform(Close)
+        Close = Close.reshape(-1, 1)
+
+        log_returns = numpy.array([[math.log(float(data_window[i+1][4]) / float(data_window[i][4])) if i < self.windowSize - 1 else 0.0] for i in range(self.windowSize)], dtype="float32")
+        log_returns = scaler.fit_transform(log_returns)
+        log_returns = log_returns.reshape(-1, 1)
+
+        range_ratio = numpy.array([[(float(data_window[i][2])- float(data_window[i][3])) / float(data_window[i][1])] for i in range(self.windowSize)], dtype="float32")
+        range_ratio = range_ratio.reshape(-1, 1)
+
+        vol = numpy.array([data_window[:, 5]], dtype="float32")
+        vol = scaler.fit_transform(vol)
+        vol = vol.reshape(-1, 1)
+
+        data = numpy.hstack([Close, log_returns, range_ratio, vol])
         return data
 
     def action(self, action):
@@ -129,13 +156,15 @@ class StockSimulation:
             reward = self.instrumentValue - self.inventory[0]
             self.inventory = self.inventory[1:]
 
-
         self.profit += reward
         print("On t={} the profit is: {:.2f}".format(self.time, self.profit))
         self.time += 1
-        done = False
-        if self.time  == self.getEpisodeLength() - 1:
+
+        if self.time + self.windowSize >= len(self.trainingdata):
             done = True
-        next_state = self.getState()
+            next_state = None
+        else:
+            done = False
+            next_state = self.getState()
         
         return next_state, reward, done

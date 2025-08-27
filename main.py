@@ -49,6 +49,8 @@ def ChangingTraining(instrument, episodes, episodeTimeSpan, minDate, maxDate, it
         for t in range(environment.getEpisodeLength()):
             action = agent.predictAction(state)
             nextState, reward, finished = environment.action(action)
+            if nextState is None:
+                break
             agent.remember(numpy.array([state, action, reward, nextState, finished], dtype=object))
             state = nextState
             if finished:
@@ -57,7 +59,7 @@ def ChangingTraining(instrument, episodes, episodeTimeSpan, minDate, maxDate, it
             if t % 50 == 0:
                 agent.save()
         print("total profit: {:.2f}".format(environment.profit))
-        environment.reset
+        environment.reset()
         print("----------------")
         episodeStartDate = randomDate(minDate, maxDate)
         print(episodeStartDate)
